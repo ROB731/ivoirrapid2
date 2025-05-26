@@ -1,0 +1,66 @@
+@extends('layout.master')
+
+@section('title', 'IvoirRp - Détails des Plis')
+
+@section('content')
+<div class="container-fluid px-4 my-3">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4>Détails des Plis</h4>
+            <button class="btn btn-primary" onclick="printTable()">Imprimer</button>
+        </div>
+        <div class="card-body">
+            @foreach($plis as $pli)
+            <div class="row mb-4 border-bottom pb-3">
+                {{-- Informations sur le Pli --}}
+                <div class="col-md-4">
+                    <h5>Informations du Pli {{ $pli->code }}</h5>
+                    <ul class="list-group mb-3 border-0">
+                        <li class="list-group-item border-0"><strong>Type:</strong> {{ $pli->type }}</li>
+                        <li class="list-group-item border-0"><strong>Nombre de pièces:</strong> {{ $pli->nombre_de_pieces }}</li>
+                        <li class="list-group-item border-0"><strong>Date de creation:</strong> {{ $pli->created_at->format('d/m/Y H:i') }}</li>
+                   
+                    </ul>
+                </div>
+
+                {{-- Informations sur l'Expéditeur --}}
+                <div class="col-md-4">
+                    <h5>Informations de l'Expéditeur</h5>
+                    <ul class="list-group mb-3 border-0">
+                        <li class="list-group-item border-0"><strong>Nom:</strong> {{ $pli->user_name }}</li>
+                        <li class="list-group-item border-0"><strong>Email:</strong> {{ $pli->user_email }}</li>
+                        <li class="list-group-item border-0"><strong>Tél:</strong> {{ $pli->user_Telephone }}</li>
+                        <li class="list-group-item border-0"><strong>Adresse:</strong> {{ $pli->user_Adresse }}</li>
+                        <li class="list-group-item border-0"><strong>Zone:</strong> {{ $pli->user_Zone }}</li>
+                        <li class="list-group-item border-0"><strong>Cell:</strong> {{ $pli->user_Cellulaire }}</li>
+                        <li class="list-group-item border-0"><strong>Autres:</strong> {{ $pli->user_Autre }}</li>
+                    </ul>
+                </div>
+
+                {{-- Informations sur le Destinataire --}}
+                <div class="col-md-4">
+                    <h5>Informations du Destinataire</h5>
+                    <ul class="list-group mb-3 border-0">
+                        <li class="list-group-item border-0"><strong>Nom:</strong> {{ $pli->destinataire_name }}</li>
+                        <li class="list-group-item border-0"><strong>Adresse:</strong> {{ $pli->destinataire_adresse }}</li>
+                        <li class="list-group-item border-0"><strong>Tél:</strong> {{ $pli->destinataire_telephone }}</li>
+                        <li class="list-group-item border-0"><strong>Email:</strong> {{ $pli->destinataire_email }}</li>
+                        <li class="list-group-item border-0"><strong>Zone:</strong> {{ $pli->destinataire_zone }}</li>
+                        <li class="list-group-item border-0"><strong>Contact:</strong> {{ $pli->destinataire_contact }}</li>
+                        <li class="list-group-item border-0"><strong>Autres:</strong> {{ $pli->destinataire_autre }}</li>
+                    </ul>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+</div>
+
+@section('scripts')
+<script>
+    function printTable() {
+        window.print();
+    }
+</script>
+@endsection
+@endsection

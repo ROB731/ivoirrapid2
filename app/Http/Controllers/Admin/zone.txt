@@ -1,0 +1,282 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\ZoneFormRequest;
+use App\Models\Zone;
+use App\Models\ZoneDetail;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class ZoneController extends Controller
+{
+    public function index(Request $request)
+{
+    $commune = $request->input('commune'); // Récupérer la commune sélectionnée
+
+    // Récupérer les zones en fonction du rôle de l'utilisateur
+    if (Auth::user()->role_as == '1') {
+        // Admin : voir toutes les zones
+        $zonesQuery = Zone::with('details')->orderBy('Commune', 'asc');
+        $view = 'admin.zone.index'; // Vue de l'admin
+    } else {
+        // Utilisateur basique : voir uniquement les zones disponibles
+        $zonesQuery = Zone::with(['details:id,zone_id,NomZone'])->orderBy('Commune', 'asc');
+        $view = 'client.zone.index'; // Vue du client
+    }
+
+    // Appliquer un filtre par commune si nécessaire
+    if ($commune) {
+        $zonesQuery->where('Commune', $commune);
+    }
+
+    // Récupérer les communes distinctes
+    $communes = Zone::distinct()->pluck('Commune');
+
+    // Paginer les zones
+    $zones = $zonesQuery->paginate(25);
+
+    // Retourner la vue avec les données nécessaires
+    return view($view, compact('zones', 'communes'));
+}
+
+
+    
+
+
+public function showZonesWithDetails(Request $request)
+{
+    $communeFilter = $request->input('commune');
+    $coursierFilter = $request->input('coursier');
+
+    $zones = Zone::with('details')
+        ->when($communeFilter, function ($query, $communeFilter) {
+            $query->where('Commune', $communeFilter);
+        })
+        ->when($coursierFilter, function ($query, $coursierFilter) {
+            $query->whereHas('details', function ($query) use ($coursierFilter) {
+                $query->where('CoursierName', $coursierFilter);
+            });
+        })
+        ->paginate(10);
+
+    $communes = Zone::pluck('Commune')->unique();
+    $coursiers = ZoneDetail::pluck('CoursierName')->unique();
+
+    return view('admin.zone.zones-details', compact('zones', 'communes', 'coursiers'));
+}
+
+
+
+
+    public function create()
+    {
+        return view('admin.zone.create');
+    }
+    public function show($id)
+    {
+        $zone = Zone::with('details')->findOrFail($id); // Use the relationship name 'details'
+        return view('admin.zone.show', compact('zone'));
+    }
+    
+
+    public function store(Request $request)
+    {
+        // Valider les champs principaux et détails des zones
+        $request->validate([
+            'Commune' => 'required|string|max:255',
+            'PlageZone' => 'required|regex:/^\d{3}-\d{3}$/',
+            'NomZone' => 'required|array',
+            'NomZone.*' => 'required|string',
+            'CoursierName.*' => 'required|string',
+            'CoursierCode.*' => 'required|string',
+            'CoursierPhone.*' => 'required|string',
+        ]);
+    
+        // Créer la zone principale
+        $zone = Zone::create([
+            'commune' => $request->Commune,
+        ]);
+    
+        // Enregistrer chaque détail de zone
+        foreach ($request->NomZone as $numeroZone => $nomZone) {
+            ZoneDetail::create([
+                'zone_id' => $zone->id,
+                'numero_zone' => $numeroZone, // Numéro généré automatiquement
+                'nom_zone' => $nomZone,
+                'coursier_name' => $request->CoursierName[$numeroZone],
+                'coursier_code' => $request->CoursierCode[$numeroZone],
+                'coursier_phone' => $request->CoursierPhone[$numeroZone],
+            ]);
+        }
+    
+        return redirect()->back()->with('success', 'La zone et ses détails ont été ajoutés avec succès.');
+    }
+    
+    
+
+
+
+
+    
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\ZoneFormRequest;
+use App\Models\Zone;
+use App\Models\ZoneDetail;
+
+class ZoneController extends Controller
+{
+    public function index()
+    {
+        // Récupérer toutes les zones avec leurs détails
+        $zones = Zone::with('details')->paginate(25);
+        return view('admin.zone.index', compact('zones'));
+    }
+
+    public function create()
+    {
+        return view('admin.zone.create');
+    }
+
+    public function show($id)
+    {
+        $zone = Zone::with('details')->findOrFail($id); // Utilise la relation 'details'
+        return view('admin.zone.show', compact('zone'));
+    }
+
+   /*  public function store(ZoneFormRequest $request)
+    {
+        $data = $request->validated();
+
+        // Créer la zone principale
+        $zone = new Zone();
+        $zone->Commune = $data['Commune'];
+        $zone->PlageZone = $data['PlageZone'];
+        $zone->save();
+
+        // Calculer la plage de zones
+        [$start, $end] = explode('-', $data['PlageZone']);
+        $start = intval($start);
+        $end = intval($end);
+
+        // Créer les détails associés
+        foreach ($data['NomZone'] as $key => $nomZone) {
+            $numeroZone = $start + $key; // Génération du numéro de zone
+
+            // Vérifier si le numéro est dans la plage
+            if ($numeroZone > $end) {
+                break; // Éviter de dépasser la plage spécifiée
+            }
+
+            ZoneDetail::create([
+                'zone_id' => $zone->id,
+                'NumeroZone' => $numeroZone, // Ajouter le numéro de zone
+                'NomZone' => $nomZone,
+                'CoursierName' => $data['CoursierName'][$key],
+                'CoursierCode' => $data['CoursierCode'][$key],
+                'CoursierPhone' => $data['CoursierPhone'][$key],
+            ]);
+        }
+
+        return redirect('admin/zone')->with('message', 'Zone ajoutée avec succès.');
+    } */
+
+    public function store(ZoneFormRequest $request)
+{
+    $data = $request->validated();
+
+    // Créer la zone principale
+    $zone = new Zone();
+    $zone->Commune = $data['Commune'];
+    $zone->PlageZone = $data['PlageZone'];
+    $zone->save();
+
+    // Créer les détails associés
+    foreach ($data['NomZone'] as $key => $nomZone) {
+        ZoneDetail::create([
+            'zone_id' => $zone->id,
+            'NomZone' => $nomZone,
+            'CoursierName' => $data['CoursierName'][$key],
+            'CoursierCode' => $data['CoursierCode'][$key],
+            'CoursierPhone' => $data['CoursierPhone'][$key],
+            'NumeroZone' => $key, // Numéro de zone ajouté ici
+        ]);
+    }
+
+    return redirect('admin/zone')->with('message', 'Zone ajoutée avec succès.');
+}
+
+
+public function edit($zone_id)
+{
+    $zone = Zone::with('details')->findOrFail($zone_id);
+    return view('admin.zone.edit', compact('zone'));
+}
+public function update(ZoneFormRequest $request, $zone_id)
+{
+    $data = $request->validated();
+
+    // Mettre à jour la zone principale
+    $zone = Zone::findOrFail($zone_id);
+    $zone->Commune = $data['Commune'];
+    $zone->PlageZone = $data['PlageZone'];
+    $zone->update();
+
+    // Mettre à jour les détails associés
+    $existingDetails = $zone->details->keyBy('id'); // Associer les détails existants par ID
+    foreach ($data['NomZone'] as $key => $nomZone) {
+        if (isset($data['detail_ids'][$key]) && $existingDetails->has($data['detail_ids'][$key])) {
+            // Mettre à jour un détail existant
+            $zoneDetail = $existingDetails->get($data['detail_ids'][$key]);
+            $zoneDetail->update([
+                'NomZone' => $nomZone,
+                'CoursierName' => $data['CoursierName'][$key],
+                'CoursierCode' => $data['CoursierCode'][$key],
+                'CoursierPhone' => $data['CoursierPhone'][$key],
+                'NumeroZone' => $key,
+            ]);
+            // Supprimer le détail de la liste des existants (géré)
+            $existingDetails->forget($data['detail_ids'][$key]);
+        } else {
+            // Créer un nouveau détail si non existant
+            ZoneDetail::create([
+                'zone_id' => $zone->id,
+                'NomZone' => $nomZone,
+                'CoursierName' => $data['CoursierName'][$key],
+                'CoursierCode' => $data['CoursierCode'][$key],
+                'CoursierPhone' => $data['CoursierPhone'][$key],
+                'NumeroZone' => $key,
+            ]);
+        }
+    }
+
+    // Supprimer les anciens détails non inclus dans la nouvelle soumission
+    foreach ($existingDetails as $detail) {
+        $detail->delete();
+    }
+
+    return redirect('admin/zone')->with('message', 'Zone modifiée avec succès.');
+}
+
+}

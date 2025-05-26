@@ -1,0 +1,354 @@
+@extends('layout.master')
+
+@section('title', 'IvoirRp - Ajouter un Pli')
+
+@section('content')
+@if($message = Session::get('message'))
+    <div class="alert alert-success alert-dismissible fade show">
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <strong>{{ $message }}</strong>
+    </div>
+@endif
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <form action="{{ url('client/add-pli') }}" method="POST" class="mt-5 bg-light p-5 rounded shadow" enctype="multipart/form-data" id="pliForm">
+                @csrf
+                {{-- Debut formulaire --}}
+
+                <div class="d-none">
+                    <!-- Informations de l'utilisateur -->
+                    <h4>Informations du créateur</h4>
+                    <div class="mb-3">
+                        <label for="user_id" class="form-label">Nom de l'utilisateur</label>
+                        <input type="text" class="form-control bg-secondary text-white" id="user_id" name="user_id" value="{{ auth()->user()->id }}" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="user_name" class="form-label">Nom de l'utilisateur</label>
+                        <input type="text" class="form-control bg-secondary text-white" id="user_name" name="user_name" value="{{ auth()->user()->name }}" readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="user_email" class="form-label">Email de l'utilisateur</label>
+                        <input type="email" class="form-control bg-secondary text-white" id="user_email" name="user_email" value="{{ auth()->user()->email }}" readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="user_Telephone" class="form-label">Téléphone de l'utilisateur</label>
+                        <input type="text" class="form-control bg-secondary text-white" id="user_Telephone" name="user_Telephone" value="{{ auth()->user()->Telephone }}" readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="user_Adresse" class="form-label">Adresse de l'utilisateur</label>
+                        <input type="text" class="form-control bg-secondary text-white" id="user_Adresse" name="user_Adresse" value="{{ auth()->user()->Adresse }}" readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="user_Zone" class="form-label">Zone de l'utilisateur</label>
+                        <input type="text" class="form-control bg-secondary text-white" id="user_Zone" name="user_Zone" value="{{ auth()->user()->Zone }}" readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="user_Cellulaire" class="form-label">Numéro de cellulaire</label>
+                        <input type="text" class="form-control bg-secondary text-white" id="user_Cellulaire" name="user_Cellulaire" value="{{ auth()->user()->Cellulaire }}" readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="user_Autre" class="form-label">Autres informations</label>
+                        <textarea class="form-control bg-secondary text-white" id="user_Autre" name="user_Autre" rows="3" readonly>{{ auth()->user()->Autre }}</textarea>
+                    </div>
+                </div>
+
+
+                <!-- Sélection du destinataire -->
+
+                <h4>Informations du destinataire</h4>
+
+                {{-- <div class="mb-3">
+                    <label for="destinataire_id" class="form-label">Sélectionner le destinataire<span class="text-danger">*</span></label>
+                    <select class="form-select @error('destinataire_id') is-invalid @enderror" id="destinataire_id" name="destinataire_id" required onchange="fillDestinataireInfo()">
+                        <option value="">Choisir un destinataire</option>
+                        @foreach($destinataires as $destinataire)
+                            <option value="{{ $destinataire->id }}"
+                                data-name="{{ $destinataire->name }}"
+                                data-adresse="{{ $destinataire->adresse }}"
+                                data-telephone="{{ $destinataire->telephone }}"
+                                data-email="{{ $destinataire->email }}"
+                                data-zone="{{ $destinataire->zone }}"
+                                data-contact="{{ $destinataire->contact }}"
+                                data-autre="{{ $destinataire->autre }}">
+                                {{ $destinataire->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('destinataire_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div> --}}
+
+
+                        {{-- <input type="text" id="searchDestinataire" class="form-control mb-2" placeholder="Tapez un nom..." autocomplete="off">
+                        <ul id="destinataireList" class="list-group mt-2" style="max-height: 200px; overflow-y: auto; display: none; position: absolute; z-index: 1000;"></ul> --}}
+
+
+                        {{-- Section ci dessous à lodifier  --}}
+
+
+
+                        <label for="searchDestinataire">Rechercher un destinataire</label>
+                        <input type="text" id="searchDestinataire" name="searchDestinataire" class="form-control mb-2" placeholder="Tapez un nom..." autocomplete="off">
+                        <ul id="destinataireList" class="list-group mt-2" style="max-height: 200px; overflow-y: auto; display: none; position: absolute;"></ul>
+
+                        <label>Adresse :</label>
+                        <input type="text" id="destinataire_adresse" name="destinataire_adresse" class="form-control" readonly>
+
+                        <label>Téléphone :</label>
+                        <input type="text" id="destinataire_telephone" name="destinataire_telephone" class="form-control" readonly>
+
+                        <label>Email :</label>
+                        <input type="text" id="destinataire_email" name="destinataire_email" class="form-control" readonly>
+
+                        <label>Zone :</label>
+                        <input type="text" id="destinataire_zone" name="destinataire_zone" class="form-control" readonly>
+
+                        <label>Contact :</label>
+                        <input type="text" id="destinataire_contact" name="destinataire_contact" class="form-control" readonly>
+
+                        <label>Autre :</label>
+                        <input type="text" id="destinataire_autre" name="destinataire_autre" class="form-control" readonly>
+
+
+
+
+
+
+
+
+              <!-- / Pour le formùulaire-->
+
+                    {{-- Pour le script down --}}
+
+                        <script>
+                                                            document.getElementById('searchDestinataire').addEventListener('keyup', function () {
+                            let searchTerm = this.value.trim();
+                            let destinataireList = document.getElementById('destinataireList');
+
+                            if (searchTerm.length < 2) {
+                                destinataireList.style.display = "none";
+                                return;
+                            }
+
+                            fetch(`/get-destinataires?query=${searchTerm}`)
+                                .then(response => response.json())
+                                .then(destinataires => {
+                                    destinataireList.innerHTML = "";
+
+                                    if (destinataires.length > 0) {
+                                        destinataireList.style.display = "block";
+                                        destinataires.forEach(destinataire => {
+                                            let li = document.createElement("li");
+                                            li.classList.add("list-group-item");
+                                            li.textContent = destinataire.name;
+                                            li.onclick = () => {
+                                                document.getElementById('searchDestinataire').value = destinataire.name;
+                                                document.getElementById('destinataire_adresse').value = destinataire.adresse;
+                                                document.getElementById('destinataire_telephone').value = destinataire.telephone;
+                                                document.getElementById('destinataire_email').value = destinataire.email;
+                                                document.getElementById('destinataire_zone').value = destinataire.zone;
+                                                document.getElementById('destinataire_contact').value = destinataire.contact;
+                                                document.getElementById('destinataire_autre').value = destinataire.autre;
+
+                                                console.log("Champs remplis :", destinataire); // ✅ Test de remplissage avant soumission
+                                                destinataireList.style.display = "none";
+                                            };
+                                            destinataireList.appendChild(li);
+                                        });
+                                    } else {
+                                        destinataireList.style.display = "none";
+                                        alert("Le nom choisi n'existe pas. Veuillez ajouter un nouveau destinataire.");
+                                    }
+                                });
+                        });
+
+
+
+
+
+
+                        </script>
+
+
+
+                    {{-- / Fin pour -------------- --}}
+
+
+
+
+
+                <div class="d-none">
+                    <!-- Nom du destinataire -->
+                    <div class="mb-3">
+                        <label for="destinataire_name" class="form-label">Nom du destinataire</label>
+                        <input type="text" class="form-control bg-primary text-white" id="destinataire_name" name="destinataire_name" readonly>
+                    </div>
+
+                    <!-- Adresse                             du destinataire -->
+                    <div class="mb-3">
+                        <label for="destinataire_adresse" class="form-label">Adresse du destinataire</label>
+                        <input type="text" class="form-control bg-primary text-white" id="destinataire_adresse" name="destinataire_adresse" readonly>
+                    </div>
+
+                    <!-- Téléphone du destinataire -->
+                    <div class="mb-3">
+                        <label for="destinataire_telephone" class="form-label">Téléphone du destinataire</label>
+                        <input type="text" class="form-control bg-primary text-white" id="destinataire_telephone" name="destinataire_telephone" readonly>
+                    </div>
+
+                    <!-- Email du destinataire -->
+                    <div class="mb-3">
+                        <label for="destinataire_email" class="form-label">Email du destinataire</label>
+                        <input type="email" class="form-control bg-primary text-white" id="destinataire_email" name="destinataire_email" readonly>
+                    </div>
+
+                    <!-- Zone du destinataire -->
+                    <div class="mb-3">
+                        <label for="destinataire_zone" class="form-label">Zone du destinataire</label>
+                        <input type="text" class="form-control bg-primary text-white" id="destinataire_zone" name="destinataire_zone" readonly>
+                    </div>
+
+                    <!-- Contact alternatif du destinataire -->
+                    <div class="mb-3">
+                        <label for="destinataire_contact" class="form-label">Contact alternatif du destinataire</label>
+                        <input type="text" class="form-control bg-primary text-white" id="destinataire_contact" name="destinataire_contact" readonly>
+                    </div>
+
+                    <!-- Autres informations -->
+                    <div class="mb-3">
+                        <label for="destinataire_autre" class="form-label">Autres informations</label>
+                        <textarea class="form-control bg-primary text-white" id="destinataire_autre" name="destinataire_autre" rows="3" readonly></textarea>
+                    </div>
+                </div>
+
+                <!-- Informations sur le colis -->
+                <!--<h4>Informations du pli</h4>
+                <div class="mb-3">
+                    <label for="type" class="form-label">Type de pli<span class="text-danger">*</span></label>
+                    <input type="text" class="form-control bg-primary text-white @error('type') is-invalid @enderror" id="type" name="type" required>
+                    @error('type')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>-->
+                <div class="mb-3">
+    <label for="type" class="form-label">Type de pli<span class="text-danger">*</span></label>
+    <select class="form-control bg-primary text-white @error('type') is-invalid @enderror" id="type" name="type" required>
+        <option value="" disabled selected>Choisir un type</option>
+        <option value="FACTURE">FACTURE</option>
+        <option value="AVOIR">AVOIR</option>
+        <option value="PRO-FORMAT">PRO-FORMAT</option>
+        <option value="BON DE LIVRAISON">BON DE LIVRAISON</option>
+        <option value="BON DE COMMANDE">BON DE COMMANDE</option>
+        <option value="COURRIER ADMINISTRATIF">COURRIER ADMINISTRATIF</option>
+        <option value="PIECE MECANIQUE">PIECE MECANIQUE</option>
+        <option value="PIECE ELECTRONIQUE">PIECE ELECTRONIQUE</option>
+        <option value="PIECE DE MEUBLE">ALIMENTAIRE HUMAIN</option>
+        <option value="PIECE DE MONTAGE">ALIMENTAIRE ANIMAL</option>
+        <option value="PIECE DE REPARATION">VETEMENT</option>
+        <option value="PIECE DE REVISION">CHAUSSURE</option>
+    </select>
+    @error('type')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+</div>
+                <div class="mb-3 d-none">
+                    <label for="code" class="form-label">Code du Pli</label>
+                    <input type="text" class="form-control" id="code" name="code" value="{{ $code }}" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="nombre_de_pieces">Nombre de pièces</label>
+                    <input type="number" name="nombre_de_pieces" id="nombre_de_pieces" class="form-control" min="1" max="10" required>
+                </div>
+
+
+                <div id="references-container">
+                    <!-- Les champs de référence seront ajoutés ici -->
+                </div>
+
+
+                {{-- <div class="mb-3">
+                    <label for="nombre_de_pieces" class="form-label">Nombre de pièces<span class="text-danger">*</span></label>
+                    <input type="number" class="form-control bg-primary text-white @error('nombre_de_pieces') is-invalid @enderror" id="nombre_de_pieces" name="nombre_de_pieces" required>
+                    @error('nombre_de_pieces')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div> --}}
+
+                <button type="submit" class="btn btn-primary" style="margin-top: 10px; margin-left: 255px">Enregistrer</button>
+            </form>
+            {{-- Fin du formulaire  --}}
+        </div>
+    </div>
+</div>
+
+<script>
+    function fillDestinataireInfo() {
+        const select = document.getElementById('destinataire_id');
+        const option = select.options[select.selectedIndex];
+
+        document.getElementById('destinataire_name').value = option.getAttribute('data-name') || '';
+        document.getElementById('destinataire_adresse').value = option.getAttribute('data-adresse') || '';
+        document.getElementById('destinataire_telephone').value = option.getAttribute('data-telephone') || '';
+        document.getElementById('destinataire_email').value = option.getAttribute('data-email') || '';
+        document.getElementById('destinataire_zone').value = option.getAttribute('data-zone') || '';
+        document.getElementById('destinataire_contact').value = option.getAttribute('data-contact') || '';
+        document.getElementById('destinataire_autre').value = option.getAttribute('data-autre') || '';
+    }
+
+    document.getElementById('nombre_de_pieces').addEventListener('input', function () {
+        const container = document.getElementById('references-container');
+        const nombreDePieces = this.value; // Récupérer la valeur du champ nombre_de_pieces
+        const alertMessage = document.getElementById('alert-message'); // Div d'alerte
+
+        // Réinitialiser les champs de références et le message d'alerte
+        container.innerHTML = '';
+        if (alertMessage) alertMessage.remove();
+
+        // Vérifier si le nombre dépasse 10
+        if (nombreDePieces > 10) {
+            // Ajouter un message d'avertissement
+            const alertDiv = document.createElement('div');
+            alertDiv.id = 'alert-message';
+            alertDiv.className = 'alert alert-warning mt-3';
+            alertDiv.textContent = 'Le nombre de références ne peut pas dépasser 10.';
+            container.parentElement.insertBefore(alertDiv, container);
+
+            // Fixer la valeur du champ à 10
+            this.value = 10;
+            return;
+        }
+
+        // Générer les champs pour les références
+        for (let i = 0; i < nombreDePieces; i++) {
+            const div = document.createElement('div');
+            div.className = 'form-group';
+            div.innerHTML = `
+                <label for="reference_${i}">Référence ${i + 1}</label>
+                <input type="text" name="reference[]" id="reference_${i}" class="form-control" placeholder="Entrez la référence" required>
+            `;
+            container.appendChild(div);
+        }
+    });
+</script>
+
+@endsection

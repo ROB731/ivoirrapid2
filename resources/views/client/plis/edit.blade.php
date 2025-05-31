@@ -3,27 +3,33 @@
 @section('title', 'IvoirRp - Modifier un Pli')
 
 @section('content')
-@if($message = Session::get('message'))
-    <div class="alert alert-success alert-dismissible fade show">
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        <strong>{{ $message }}</strong>
-    </div>
-@endif
+        @if($message = Session::get('message'))
+            <div class="alert alert-success alert-dismissible fade show">
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <strong>{{ $message }}</strong>
+            </div>
+        @endif
 
-<h2>Edité un pli</h2>
-
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            @if ($errors->any())
+        <h2>Edité un pli</h2>
+        <hr>
+            @if(session('error'))
                 <div class="alert alert-danger">
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
+                    {!! session('error') !!}
                 </div>
             @endif
+
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        @if ($errors->any())
+                            <div class="alert alert-danger">
+                                <ul>
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
 
             <form action="{{ url('client/update-pli/'.$pli->id) }}" method="POST" class="mt-5 bg-light p-5 rounded shadow" enctype="multipart/form-data" id="pliForm">
                 @csrf
@@ -74,15 +80,146 @@
                 </div>
                 </div>
 
-                <!-- Informations du destinataire -->
-                <h4>Informations du destinataire</h4>
-                <input type="dis">
-                <div class="mb-3">
-                    <label for="destinataire_id" class="form-label">Sélectionner le destinataire<span class="text-danger">*</span></label>
-                    <select class="form-select @error('destinataire_id') is-invalid @enderror" id="destinataire_id" name="destinataire_id" required onchange="fillDestinataireInfo()">
-                        <option value="">Choisir un destinataire</option>
-                        @foreach($destinataires as $destinataire)
+                @php
+                   $id = request()->route('pli_id'); // Récupère l'ID de l'URL
+                    $plimod = \App\Models\Pli::find($id);
+                @endphp
+
+                <div class="alert alert-primary d-flex align-items-center" role="alert">
+                    <i class="bi bi-pencil-fill me-2"></i>
+                    <strong>Modification du pli N° {{ $plimod->code }}</strong>
+                </div>
+                <div class="alert alert-succes d-flex align-items-center" role="alert">
+                    <i class="bi bi-calendar-check me-2"></i>
+                    <span>Créé le <strong>{{ $plimod->created_at->format('d/m/Y à H:i') }}</strong></span>
+                </div>
+
+
+
+                {{-- <input type="dis"> --}}
+                         <hr>
+                        <div class="mb-3">
+
+                                <div class="mb-3">
+                                    <label for="searchDestinataire" class="form-label fw-bold">
+                                        <i class="bi bi-person-fill"></i> <h5>
+                                            Sélectionner un destinataire </h5> <span class="text-danger">*</span>
+                                    </label>
+
+                                                            <!-- Informations du destinataire -->
+                        <div class="card border-succes shadow-sm">
+                            <div class="card-header bg-success text-white fw-bold">
+                                <i class="bi bi-person-lines-fill"></i> Informations du destinataire
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-2"><strong>👤 Nom :</strong> {{ $plimod->destinataire_name }}</p>
+                                <p class="mb-2"><strong>📍 Adresse :</strong> {{ $plimod->destinataire_adresse }}</p> <!-- Correction du champ affiché -->
+                                <p class="mb-2"><strong>📞 Téléphone :</strong> {{ $plimod->destinataire_telephone }}</p>
+                            </div>
+                        </div>
+
+                                    <!-- Input affichant le nom -->
+                                    <input type="text" list="list-dests" class="form-control border-primary shadow-sm"
+                                        id="searchDestinataire" placeholder="Rechercher un destinataire..." onchange="updateSelectValue()">
+
+                                    <!-- Select caché pour stocker l'ID -->
+                                    <select name="destinataire_id" id="destinataireSelect" class="form-select d-none">
+                                        <option value="">Choisir un destinataire</option>
+                                        @php
+                                            $destinataires = \App\Models\Destinataire::all()->groupBy(function ($item) {
+                                                return strtolower(trim($item->name)) . '-' . strtolower(trim($item->adresse)) . '-' . strtolower(trim($item->zone));
+                                            })->map(function ($group) {
+                                                return $group->first();
+                                            })->values();
+                                        @endphp
+
+                                        @foreach ($destinataires as $destinataire)
+                                            <option value="{{ $destinataire->id }}" data-name="{{ $destinataire->name }}"
+                                                    data-adresse="{{ $destinataire->adresse }}" data-zone="{{ $destinataire->zone }}">
+                                                {{ $destinataire->name }} - {{ $destinataire->adresse }} - {{ $destinataire->zone }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+
+                                    <!-- Liste déroulante du datalist -->
+                                    <datalist id="list-dests">
+                                        <option value="">Choisir un destinataire</option>
+                                        @foreach ($destinataires as $destinataire)
+                                            <option data-id="{{ $destinataire->id }}" value="{{ $destinataire->name }}">
+                                                {{ $destinataire->name }} - {{ $destinataire->adresse }} - {{ $destinataire->zone }}
+                                            </option>
+                                        @endforeach
+                                    </datalist>
+                                </div>
+
+                                            <!-- Informations sur le pli -->
+                          <h4>Informations du pli</h4>
+
+
+                                        <div class="card border-primary shadow-sm mb-3">
+                                <div class="card-header bg-primary text-white fw-bold">
+                                    <i class="bi bi-box-seam"></i> Information du pli
+                                </div>
+                                <div class="card-body">
+                                    <p class="mb-2"><strong>📦 Nombre de pièces :</strong> {{ $plimod->nombre_de_pieces }}</p>
+                                    <p class="mb-2"><strong>🔖 Références :</strong> {{ $plimod->reference }}</p>
+
+                                                                        <p class="mb-2"><strong>📦 Type :</strong> {{ $plimod->type }}</p>
+                                </div>
+                            </div>
+                <!--<div class="mb-3">
+                    <label for="type" class="form-label">Type de pli<span class="text-danger">*</span></label>
+                    <input type="text" class="form-control bg-primary text-white @error('type') is-invalid @enderror" id="type" name="type" value="{{ $pli->type }}" required>
+                    @error('type')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>-->
+
+                            <div class="mb-3">
+                                <label for="type" class="form-label">Type de pli<span class="text-danger">*</span></label>
+                                <select class="form-control bg-primary text-white @error('type') is-invalid @enderror" id="type" name="type" required>
+                                    <option value="{{ $pli->type }}" disabled selected>Choisir un type</option>
+                                    <option value="FACTURE">FACTURE</option>
+                                    <option value="AVOIR">AVOIR</option>
+                                    <option value="PRO-FORMAT">PRO-FORMAT</option>
+                                    <option value="BON DE LIVRAISON">BON DE LIVRAISON</option>
+                                    <option value="BON DE COMMANDE">BON DE COMMANDE</option>
+                                    <option value="COURRIER ADMINISTRATIF">COURRIER ADMINISTRATIF</option>
+                                    <option value="PIECE MECANIQUE">PIECE MECANIQUE</option>
+                                    <option value="PIECE ELECTRONIQUE">PIECE ELECTRONIQUE</option>
+                                    <option value="PIECE DE MEUBLE">ALIMENTAIRE HUMAIN</option>
+                                    <option value="PIECE DE MONTAGE">ALIMENTAIRE ANIMAL</option>
+                                    <option value="PIECE DE REPARATION">VETEMENT</option>
+                                    <option value="PIECE DE REVISION">CHAUSSURE</option>
+                                </select>
+                                @error('type')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                        <div class="form-group">
+                            <label for="nombre_de_pieces">Nombre de pièces</label>
+                            <input type="number" name="nombre_de_pieces" id="nombre_de_pieces" class="form-control" min="0" max="10" value="{{ $pli->nombre_de_pieces }}" required>
+                        </div>
+
+                        <!-- Références (si existantes) -->
+                        <div id="references-container" required>
+                            <!-- Les champs de référence seront ajoutés ici -->
+                        </div>
+
+                        <button type="submit" class="btn btn-primary my-3">Modifier le pli</button>
+                        <a href="{{ route('client.plis.index') }}" class="btn btn-warning my-3">Ignorer les Modifications</a>
+
+
+                                {{-- Fin de la div --}}
+                        </div>
+
+                    {{-- <select class="form-select @error('destinataire_id') is-invalid @enderror" id="destinataire_id" name="destinataire_id" required onchange="fillDestinataireInfo()"> --}}
+                        {{-- <option value="">Choisir un destinataire</option> --}}
+                     <div style="display:none">
+                               @foreach($destinataires as $destinataire)
                             <option value="{{ $destinataire->id }}"
+                            {{-- <option value="" --}}
                                 data-name="{{ $destinataire->name }}"
                                 data-adresse="{{ $destinataire->adresse }}"
                                 data-telephone="{{ $destinataire->telephone }}"
@@ -94,7 +231,9 @@
                                 {{ $destinataire->name }}
                             </option>
                         @endforeach
-                    </select>
+                     </div>
+                    {{-- </select> --}}
+
                     @error('destinataire_id')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -117,111 +256,139 @@
                         <input type="text" class="form-control bg-primary text-white" id="destinataire_telephone" name="destinataire_telephone" value="{{ $pli->destinataire_telephone }}" readonly>
                     </div>
 
-                    <!-- Autres champs -->
-                    <!-- Adresse, téléphone, email, zone du destinataire, etc -->
                 </div>
 
-                <!-- Informations sur le pli -->
-                <h4>Informations du pli</h4>
-                <!--<div class="mb-3">
-                    <label for="type" class="form-label">Type de pli<span class="text-danger">*</span></label>
-                    <input type="text" class="form-control bg-primary text-white @error('type') is-invalid @enderror" id="type" name="type" value="{{ $pli->type }}" required>
-                    @error('type')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>-->
 
-                <div class="mb-3">
-                    <label for="type" class="form-label">Type de pli<span class="text-danger">*</span></label>
-                    <select class="form-control bg-primary text-white @error('type') is-invalid @enderror" id="type" name="type" required>
-                        <option value="{{ $pli->type }}" disabled selected>Choisir un type</option>
-                        <option value="FACTURE">FACTURE</option>
-                        <option value="AVOIR">AVOIR</option>
-                        <option value="PRO-FORMAT">PRO-FORMAT</option>
-                        <option value="BON DE LIVRAISON">BON DE LIVRAISON</option>
-                        <option value="BON DE COMMANDE">BON DE COMMANDE</option>
-                        <option value="COURRIER ADMINISTRATIF">COURRIER ADMINISTRATIF</option>
-                        <option value="PIECE MECANIQUE">PIECE MECANIQUE</option>
-                        <option value="PIECE ELECTRONIQUE">PIECE ELECTRONIQUE</option>
-                        <option value="PIECE DE MEUBLE">ALIMENTAIRE HUMAIN</option>
-                        <option value="PIECE DE MONTAGE">ALIMENTAIRE ANIMAL</option>
-                        <option value="PIECE DE REPARATION">VETEMENT</option>
-                        <option value="PIECE DE REVISION">CHAUSSURE</option>
-                    </select>
-                    @error('type')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
 
-                <div class="form-group">
-                    <label for="nombre_de_pieces">Nombre de pièces</label>
-                    <input type="number" name="nombre_de_pieces" id="nombre_de_pieces" class="form-control" min="1" max="10" value="{{ $pli->nombre_de_pieces }}" required>
-                </div>
 
-                <!-- Références (si existantes) -->
-                <div id="references-container" required>
-                    <!-- Les champs de référence seront ajoutés ici -->
-                </div>
-
-                <button type="submit" class="btn btn-primary my-3">Modifier le pli</button>
-            </form>
 
         </div>
     </div>
 </div>
 
-<script>
-    function fillDestinataireInfo() {
-        const select = document.getElementById('destinataire_id');
-        const option = select.options[select.selectedIndex];
 
-        document.getElementById('destinataire_name').value = option.getAttribute('data-name') || '';
-        document.getElementById('destinataire_adresse').value = option.getAttribute('data-adresse') || '';
-        document.getElementById('destinataire_telephone').value = option.getAttribute('data-telephone') || '';
-        document.getElementById('destinataire_email').value = option.getAttribute('data-email') || '';
-        document.getElementById('destinataire_zone').value = option.getAttribute('data-zone') || '';
-        document.getElementById('destinataire_contact').value = option.getAttribute('data-contact') || '';
-        document.getElementById('destinataire_autre').value = option.getAttribute('data-autre') || '';
-    }
+        <script>
+            function fillDestinataireInfo() {
+            const searchInput = document.getElementById('searchDestinataire');
+            const listOptions = document.querySelectorAll("#list-dests option");
+            const destinataireIdInput = document.getElementById('destinataire_id');
 
-    document.getElementById('nombre_de_pieces').addEventListener('input', function () {
-        const container = document.getElementById('references-container');
-        const nombreDePieces = this.value; // Récupérer la valeur du champ nombre_de_pieces
-        const alertMessage = document.getElementById('alert-message'); // Div d'alerte
+            let selectedDestinataire = null;
 
-        // Réinitialiser les champs de références et le message d'alerte
-        container.innerHTML = '';
-        if (alertMessage) alertMessage.remove();
+            listOptions.forEach(option => {
+                if (option.value === searchInput.value) {
+                    selectedDestinataire = option;
+                }
+            });
 
-        // Vérifier si le nombre dépasse 10
-        if (nombreDePieces > 10) {
-            // Ajouter un message d'avertissement
-            const alertDiv = document.createElement('div');
-            alertDiv.id = 'alert-message';
-            alertDiv.className = 'alert alert-warning mt-3';
-            alertDiv.textContent = 'Le nombre de références ne peut pas dépasser 10.';
-            container.parentElement.insertBefore(alertDiv, container);
-
-            // Fixer la valeur du champ à 10
-            this.value = 10;
-            return;
+            if (selectedDestinataire) {
+                destinataireIdInput.value = selectedDestinataire.getAttribute("data-id");
+                document.getElementById('destinataire_name').value = selectedDestinataire.value || '';
+                document.getElementById('destinataire_adresse').value = selectedDestinataire.getAttribute('data-adresse') || '';
+                document.getElementById('destinataire_telephone').value = selectedDestinataire.getAttribute('data-telephone') || '';
+                document.getElementById('destinataire_email').value = selectedDestinataire.getAttribute('data-email') || '';
+                document.getElementById('destinataire_zone').value = selectedDestinataire.getAttribute('data-zone') || '';
+                document.getElementById('destinataire_contact').value = selectedDestinataire.getAttribute('data-contact') || '';
+                document.getElementById('destinataire_autre').value = selectedDestinataire.getAttribute('data-autre') || '';
+            } else {
+                destinataireIdInput.value = ""; // Réinitialise si aucune correspondance trouvée
+            }
         }
 
-        // Générer les champs pour les références
-        for (let i = 0; i < nombreDePieces; i++) {
-            const div = document.createElement('div');
-            div.className = 'form-group';
-            div.innerHTML = `
-                <label for="reference_${i}">Référence ${i + 1}</label>
-                <input type="text" name="reference[]" id="reference_${i}" class="form-control" placeholder="Entrez la référence"  required>
-            `;
-            container.appendChild(div);
-        }
-    });
+
+                document.getElementById('nombre_de_pieces').addEventListener('input', function () {
+                const container = document.getElementById('references-container');
+                const nombreDePieces = parseInt(this.value, 10); // 🔹 Convertir proprement en entier
+                let alertMessage = document.getElementById('alert-message');
+
+                // 🔹 Réinitialiser les champs et l'alerte
+                container.innerHTML = '';
+                if (alertMessage) alertMessage.remove();
+
+                // 🔍 Vérification des valeurs invalides
+                if (isNaN(nombreDePieces) || nombreDePieces < 1) {
+                    this.value = 1; // Empêche les valeurs incorrectes
+                    nombreDePieces = 1;
+                } else if (nombreDePieces > 10) {
+                    this.value = 10; // Fixe à 10 maximum
+                    nombreDePieces = 10;
+                    showAlert("⚠️ Le nombre de références ne peut pas dépasser 10.", container);
+                }
+
+                // 🔄 Générer les champs dynamiques avec Bootstrap
+                for (let i = 0; i < nombreDePieces; i++) {
+                    const div = document.createElement('div');
+                    div.className = 'form-group mb-3';
+                    div.innerHTML = `
+
+                                 <label for="reference_${i}" class="form-label fw-bold text-primary">Référence ${i + 1}</label>
+                                 <input type="text" name="reference[]" id="reference_${i}" class="form-control border-primary shadow-sm"
+                            placeholder="Entrez la référence" required>
+
+                    `;
+                    container.appendChild(div);
+                }
+            });
+
+            //  **Fonction pour afficher un message d'alerte avec Bootstrap**
+            function showAlert(message, container) {
+                let alertDiv = document.createElement('div');
+                alertDiv.id = 'alert-message';
+                alertDiv.className = 'alert alert-warning mt-3 d-flex align-items-center';
+                alertDiv.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-2"></i> ${message}`;
+                container.parentElement.insertBefore(alertDiv, container);
+            }
+
+        </script>
 
 
+            </form>
+                <script>
+                        document.getElementById('searchDestinataire').addEventListener('input', function () {
+                            let searchTerm = this.value.trim();
+                            let listOptions = document.querySelectorAll("#list-dests option");
+                            let destinataireIdInput = document.getElementById('destinataire_id');
 
+                            let selectedId = "";
 
-</script>
+                            listOptions.forEach(option => {
+                                if (option.value === searchTerm) {
+                                    selectedId = option.getAttribute("data-id");
+                                }
+                            });
+
+                            if (selectedId) {
+                                destinataireIdInput.value = selectedId;
+                            } else {
+                                destinataireIdInput.value = ""; // 🔹 Réinitialise si le nom n'est pas valide
+                            }
+                        });
+                        </script>
+
+            <script>
+            function updateSelectValue() {
+                const searchInput = document.getElementById('searchDestinataire');
+                const select = document.getElementById('destinataireSelect');
+                const options = select.options;
+
+                let selectedId = "";
+
+                for (let option of options) {
+                    if (option.getAttribute("data-name") === searchInput.value) {
+                        selectedId = option.value;
+                        break;
+                    }
+                }
+
+                select.value = selectedId; // Met à jour le `<select>` avec l'ID
+
+                // Si un ID est trouvé, met à jour les autres champs
+                if (selectedId) {
+                    document.getElementById('destinataire_name').value = searchInput.value;
+                    document.getElementById('destinataire_adresse').value = select.options[select.selectedIndex].getAttribute("data-adresse") || '';
+                    document.getElementById('destinataire_zone').value = select.options[select.selectedIndex].getAttribute("data-zone") || '';
+                }
+            }
+            </script>
 
 @endsection

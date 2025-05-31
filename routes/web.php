@@ -26,6 +26,30 @@ use App\Http\Controllers\Client\DestinataireController;
 
 // -------------------------------------------------------------------------------------------
 
+   // Gestin de chèques----------------------
+        Route::get('admin/gestion-cheques', function(){
+            return view('admin.services-cheques.index');
+        });
+
+         Route::post('admin/gestion-cheques', function(){
+            return view('admin.services-cheques.index');
+        });
+
+
+        // coté client------
+        Route::get('client/cheques', function(){
+            return view('client.cheques.index');
+        });
+
+          Route::post('client/cheques', function(){
+            return view('client.cheques.index');
+        });
+
+        //     Route::post('/client/ajouter-cheque', function(){
+        //     return view('client.cheques.create');
+        // });
+
+    // Fin gestion de chèque-----------------------
 
 // --------------------------------------------------------------------------------------------------------------------------
 
@@ -188,6 +212,11 @@ Route::prefix('admin')->middleware(['auth', 'isAdmin'])->group(function () {
     // Lien pour la vérification des depots des plis
 
     // Fin test pour les autres liens
+
+
+
+
+
 
 
     Route::get('/plis/{pliId}/accuse-retour', [PliController::class, 'showAccuseDeRetour'])->name('plis.accuse_retour');

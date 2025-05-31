@@ -3,6 +3,10 @@
 @section('title', 'IvoirRp - Admin Destinataires')
 
 @section('content')
+
+  @include('admin.destinataires.modal_edit')
+
+
 <div class="container-fluid px-4 my-3">
     <div class="card">
         <div class="card-header">
@@ -10,30 +14,40 @@
         </div>
     </div>
 
-
-
-    {{-- Operation coursier --}}
-
-        {{-- <div id="operation-coursier">
-            <a href="{{ route('admin.destinataires.create') }}">Créer un Destinataire</a>
-            <a href="{{ route('admin.destinataires.edit') }}">Éditer un Destinataire</a>
-        </div> --}}
-
-        {{-- <div id="operation-coursier">
-            <a href="{{ url('client/add-destinataire') }}">Ajouter des destinataires</a>
-        </div> --}}
-
         <div id="operation-coursier" style="text-align:right"> <br>
             <a href="{{ url('client/add-destinataire') }}" class="btn btn-primary">
                 ➕ Ajouter des destinataires
             </a>
         </div>
 
+        {{-- Recherche directe --------------------------------------------------------- --}}
+        <form method="get">
+            @csrf
+               <div class="form-control">
+                     <input type="text" name="search-dest" id="" class="form-control sm-2">
+                     <button type="submit" class="btn bg-primary" placeholder="Rechercher un destinataire..." name="btn-search-dest">Rechercher</button>
+                    <a href="{{ url()->previous() }}" class="btn bg-gradient-primary">🔄 Rafraîchir</a>
+               </div>
 
 
+               @php
+                    $dest = request()->query('search-dest');
+
+                    if (!empty($dest)) {
+                        $destinataires = \App\Models\Destinataire::where('name', 'LIKE', "%{$dest}%")->paginate(20);
+                        echo '<p>Résultats pour : <strong>' . htmlspecialchars($dest) . '</strong></p>';
+                    } else {
+                        echo '<p>Aucune recherche effectuée.</p>';
+                    }
+                @endphp
+        </form>
 
 
+        {{-- / fin recherche directe ---------------------------------------------------------- --}}
     <!-- Champ de recherche -->
+
+
+
     <div class="mb-3" style="max-width: 500px; margin-top: 10px">
         <div class="input-group">
             <input type="text" id="searchInput" class="form-control" placeholder="Rechercher un destinataire..." aria-label="Rechercher un destinataire..." />
@@ -56,8 +70,11 @@
             </thead>
             <tbody>
                 @foreach($destinataires as $destinataire)
+
                     <tr>
+
                         {{-- <td>{{ $destinataire->user_id }}</td> --}}
+
                         <td>{{ optional($destinataire->user)->name ?? 'Non défini' }}</td>
 
                         <td>{{ $destinataire->name }}</td>
@@ -66,13 +83,41 @@
                         <td>{{ $destinataire->contact }}</td>
                         <td>{{ $destinataire->email }}</td>
                         <td>{{ $destinataire->zone }}</td>
-                        <td class="text-nowrap position-sticky" style="background-color: white; z-index: 10; right: 0;">
-                            <a href="{{ url('client/edit-destinataire/'.$destinataire->id) }}" class="btn btn-warning btn-sm me-1">
-                                <i class="fas fa-edit"></i>
+                        <td class="text-nowrap position-sticky">
+
+                        <script>
+                            try($e Exception)
+                                {
+                                        if($db)
+                                            {
+                                                try()
+                                            }
+                                }
+                            catch{
+
+                            }
+                            if()
+                            {}
+                        </script>
+
+{{-- ----------------------------------------------------------------------------------------------------------- --}}
+
+
+
+
+
+
+{{-- ------------------------------------------------------------------------------------------------------------- --}}
+
+<!-- Button trigger modal -->
                             </a>
-                            <a href="{{ url('client/delete-destinataire/'.$destinataire->id) }}" class="btn btn-danger btn-sm">
+                                <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#edit"  style="">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+
+                            {{-- <a href="{{ url('client/delete-destinataire/'.$destinataire->id) }}" class="btn btn-danger btn-sm">
                                 <i class="fas fa-trash"></i>
-                            </a>
+                            </a> --}}
                         </td>
                     </tr>
                 @endforeach

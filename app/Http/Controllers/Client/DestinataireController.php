@@ -17,11 +17,23 @@ class DestinataireController extends Controller
 
     public function index()
     {
-        if (Auth::user()->role_as == '1' ) {
-            // Admin voit tous les destinataires triés par ordre alphabétique avec pagination
-            $destinataires = Destinataire::orderBy('name', 'asc')->paginate(1000);
+                    if (Auth::user()->role_as == '1' ) {
+
+                        // Admin voit tous les destinataires triés par ordre alphabétique avec pagination
+                 $destinataires = Destinataire::selectRaw('MIN(id) as id,
+                        LOWER(TRIM(name)) as name,
+                        LOWER(TRIM(adresse)) as adresse,
+                        LOWER(TRIM(zone)) as zone,
+                        telephone, email')
+                        ->groupBy('name', 'adresse', 'zone', 'telephone', 'email') // 🔹 Grouper avec normalisation
+                        ->orderBy('name') // 🔄 Tri alphabétique
+                        ->paginate(500);
+
+
             return view('admin.destinataires.index', compact('destinataires'));
-        } else {
+
+        }
+         else {
             // Utilisateur basique voit seulement ses destinataires triés par ordre alphabétique avec pagination
             $destinataires = Auth::user()->destinataires()->orderBy('name', 'asc')->paginate(500);
             return view('client.destinataires.index', compact('destinataires'));
@@ -80,32 +92,6 @@ class DestinataireController extends Controller
             }
 
 
-
-
-
-
-
-
-    // public function index()
-    //         {
-    //             // Tous les destinataires seront visibles par tous les utilisateurs
-    //             $destinataires = Destinataire::All('name', 'asc')->paginate(50);
-
-    //             return view('client.destinataires.index', compact('destinataires'));
-    //         }
-
-
-
-
-    // Afficher le formulaire de création uniquement pour les utilisateurs basiques
-    // public function create()
-    // {
-    //     if (Auth::user()->role_as == '1') {  // Donc on est obligé de se connecter sur leur page pour faire des saisir
-    //         abort(403, 'Accès refusé'); // Empêcher l'admin d'accéder à la création
-    //     }
-    //     return view('client.destinataires.create');
-    // }
-
     public function create()
     {
         if (Auth::user()) {  // Donc on est obligé de se connecter sur leur page pour faire des saisir
@@ -160,7 +146,7 @@ class DestinataireController extends Controller
         $destinataire->email = $data['email'];
         $destinataire->zone = $data['zone'];
         $destinataire->autre = $data['autre'];
-        $destinataire->user_id = auth()->id(); // Associer le destinataire à l'utilisateur connecté
+        // $destinataire->user_id = auth()->id(); // Associer le destinataire à l'utilisateur connecté
         $destinataire->update();
 
         return redirect()->route('client.destinataires.index')->with('success', 'Destinataire modifié avec succès.');

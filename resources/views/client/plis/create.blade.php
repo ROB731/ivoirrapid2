@@ -123,126 +123,87 @@
                 <input type="hidden" id="destinataire_zone" name="destinataire_zone">
                 <input type="hidden" id="destinataire_contact" name="destinataire_contact">
                 <input type="hidden" id="destinataire_autre" name="destinataire_autre">
+                
 
-                <script>
-                    document.getElementById('searchDestinataire').addEventListener('keyup', function () {
-                    let searchTerm = this.value.trim();
-                    let destinataireList = document.getElementById('destinataireList');
-                    let alertMessage = document.getElementById('alert-message');
+            <script>
+                    document.addEventListener("DOMContentLoaded", function () {
+                        const searchInput = document.getElementById('searchDestinataire');
+                        const destinataireList = document.getElementById('destinataireList');
+                        const alertMessage = document.getElementById('alert-message');
 
-                    if (searchTerm.length < 2) {
-                        destinataireList.style.display = "none";
-                        alertMessage.classList.add("d-none");
-                        return;
-                    }
+                        searchInput.addEventListener('keyup', function () {
+                            let searchTerm = searchInput.value.trim().toLowerCase();
 
-                    // fetch(`/get-destinataires?query=${searchTerm}`)
-                    //     .then(response => response.json())
-                    //     .then(destinataires => {
-                    //         destinataireList.innerHTML = "";
+                            if (searchTerm.length < 2) {
+                                destinataireList.style.display = "none";
+                                alertMessage.classList.add("d-none");
+                                return;
+                            }
 
-                    //         if (destinataires.length > 0) {
-                    //             destinataireList.style.display = "block";
-                    //             alertMessage.classList.add("d-none");
-                    //             destinataires.forEach(destinataire => {
-                    //                 let li = document.createElement("li");
-                    //                 li.classList.add("list-group-item");
-                    //                 li.textContent = destinataire.name;
+                            fetch(`/get-destinataires?query=${searchTerm}`)
+                                .then(response => response.json())
+                                .then(destinataires => {
+                                    destinataireList.innerHTML = ""; // 🔄 Réinitialisation de la liste
 
-                    //                 li.onclick = () => {
-                    //                     console.log("✅ Destinataire sélectionné :", destinataire);
+                                    if (destinataires.length > 0) {
+                                        destinataireList.style.display = "block";
+                                        alertMessage.classList.add("d-none");
 
-                    //                     document.getElementById('searchDestinataire').value = destinataire.name;
-                    //                     document.getElementById('destinataire_name').value = destinataire.name; // ✅ Mise à jour avec destinataire_name
-                    //                     document.getElementById('destinataire_id').value = destinataire.id;
-                    //                     document.getElementById('destinataire_adresse').value = destinataire.adresse || '';
-                    //                     document.getElementById('destinataire_telephone').value = destinataire.telephone || '';
-                    //                     document.getElementById('destinataire_email').value = destinataire.email || '';
-                    //                     document.getElementById('destinataire_zone').value = destinataire.zone || '';
-                    //                     document.getElementById('destinataire_contact').value = destinataire.contact || '';
-                    //                     document.getElementById('destinataire_autre').value = destinataire.autre || '';
-                    //                 // Mise à jour ----------------------------------------
-                    //                     document.getElementById('destinataire_adresseShow').value = destinataire.adresse || '';
-                    //                     document.getElementById('destinataire_zoneShow').value = destinataire.zone || '';
-                    //                 //Mise à jour -------------------------------------
+                                        let uniqueZones = new Map(); // 🔹 Stocke les zones uniques avec un seul élément
 
-                    //                     destinataireList.style.display = "none";
-                    //                 };
-                    //                 destinataireList.appendChild(li);
-                    //             });
-                    //         } else {
-                    //             destinataireList.style.display = "none";
-                    //             alertMessage.classList.remove("d-none");
-                    //         }
-                    //     })
-                    //     .catch(error => {
-                    //         console.error("❌ Erreur lors de la récupération des destinataires :", error);
-                    //         alertMessage.classList.remove("d-none");
-                    //         destinataireList.style.display = "none";
-                    //     });
+                                        destinataires.forEach(destinataire => {
+                                            let key = destinataire.zone ? destinataire.zone.trim().toLowerCase() : ""; // 🔍 Clé basée sur la zone
 
+                                            if (!uniqueZones.has(key)) { // ✅ Vérifie si la zone est déjà ajoutée
+                                                uniqueZones.set(key, destinataire);
+                                            }
+                                        });
 
+                                        // 🔹 Affichage des 5 premiers résultats uniques par zone
+                                        Array.from(uniqueZones.values()).slice(0, 5).forEach(destinataire => {
+                                            let li = document.createElement("li");
+                                            li.classList.add("list-group-item");
+                                            li.textContent = `${destinataire.name} - ${destinataire.adresse} (${destinataire.zone})`;
 
+                                            li.onclick = () => {
+                                                console.log("✅ Destinataire sélectionné :", destinataire);
 
+                                                document.getElementById('searchDestinataire').value = destinataire.name;
+                                                document.getElementById('destinataire_name').value = destinataire.name;
+                                                document.getElementById('destinataire_id').value = destinataire.id;
+                                                document.getElementById('destinataire_adresse').value = destinataire.adresse || '';
+                                                document.getElementById('destinataire_telephone').value = destinataire.telephone || '';
+                                                document.getElementById('destinataire_email').value = destinataire.email || '';
+                                                document.getElementById('destinataire_zone').value = destinataire.zone || '';
+                                                document.getElementById('destinataire_contact').value = destinataire.contact || '';
+                                                document.getElementById('destinataire_autre').value = destinataire.autre || '';
+                                                document.getElementById('destinataire_adresseShow').value = destinataire.adresse || '';
+                                                document.getElementById('destinataire_zoneShow').value = destinataire.zone || '';
 
-                    fetch(`/get-destinataires?query=${searchTerm}`)
-                    .then(response => response.json())
-                    .then(destinataires => {
-                        destinataireList.innerHTML = ""; //  Réinitialisation de la liste
+                                                destinataireList.style.display = "none";
+                                            };
 
-                        if (destinataires.length > 0) {
-                            destinataireList.style.display = "block";
-                            alertMessage.classList.add("d-none");
-
-                            let uniqueNames = new Set(); //  Création d'un Set pour éviter les doublons
-
-                            destinataires.forEach(destinataire => {
-                                if (!uniqueNames.has(destinataire.name)) { //  Vérifie si le nom est déjà ajouté
-                                    uniqueNames.add(destinataire.name);
-
-                                    let li = document.createElement("li");
-                                    li.classList.add("list-group-item");
-                                    li.textContent = destinataire.name;
-
-                                    li.onclick = () => {
-                                        console.log("✅ Destinataire sélectionné :", destinataire);
-
-                                        document.getElementById('searchDestinataire').value = destinataire.name;
-                                        document.getElementById('destinataire_name').value = destinataire.name;
-                                        document.getElementById('destinataire_id').value = destinataire.id;
-                                        document.getElementById('destinataire_adresse').value = destinataire.adresse || '';
-                                        document.getElementById('destinataire_telephone').value = destinataire.telephone || '';
-                                        document.getElementById('destinataire_email').value = destinataire.email || '';
-                                        document.getElementById('destinataire_zone').value = destinataire.zone || '';
-                                        document.getElementById('destinataire_contact').value = destinataire.contact || '';
-                                        document.getElementById('destinataire_autre').value = destinataire.autre || '';
-                                        document.getElementById('destinataire_adresseShow').value = destinataire.adresse || '';
-                                        document.getElementById('destinataire_zoneShow').value = destinataire.zone || '';
-
+                                            destinataireList.appendChild(li);
+                                        });
+                                    } else {
                                         destinataireList.style.display = "none";
-                                    };
-
-                                    destinataireList.appendChild(li);
-                                }
-                            });
-                        } else {
-                            destinataireList.style.display = "none";
-                            alertMessage.classList.remove("d-none");
-                        }
-                    })
-                    .catch(error => {
-                        console.error("❌ Erreur lors de la récupération des destinataires :", error);
-                        alertMessage.classList.remove("d-none");
-                        destinataireList.style.display = "none";
+                                        alertMessage.classList.remove("d-none");
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error("❌ Erreur lors de la récupération des destinataires :", error);
+                                    alertMessage.classList.remove("d-none");
+                                    destinataireList.style.display = "none";
+                                });
+                        });
                     });
+            </script>
 
 
 
 
 
-                });
 
-                </script>
                 {{-- Fin pour le destinataire  --}}
                 <!-- Informations sur le colis -->
                 <h4>Informations du pli</h4>
@@ -252,6 +213,7 @@
                         <option value="" disabled selected>Choisir un type</option>
                         <option value="FACTURE">FACTURE</option>
                         <option value="AVOIR">AVOIR</option>
+                          <option value="CHEQUE">CHEQUE</option>
                         <option value="PRO-FORMAT">PRO-FORMAT</option>
                         <option value="BON DE LIVRAISON">BON DE LIVRAISON</option>
                         <option value="BON DE COMMANDE">BON DE COMMANDE</option>
@@ -287,6 +249,7 @@
 </div>
 
 <script>
+
     function fillDestinataireInfo() {
         const select = document.getElementById('destinataire_id');
         const option = select.options[select.selectedIndex];

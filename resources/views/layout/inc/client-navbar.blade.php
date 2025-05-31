@@ -27,6 +27,10 @@
                     </form>
                 </li>
                  <li><a class="nav-link text-bg-dark" href="{{ url('/client/Mon-profil-user') }}">Mon profil</a></li>
+
+                <li><a class="nav-link text-bg-dark" href="{{ url('client/cheques') }}">Mes chèques</a></li>
+                 {{-- <li><a class="nav-link text-bg-dark" href="{{ url('/client/ajouter-cheque') }}">Créer un chèque</a></li> --}}
+
             </ul>
         </li>
     </ul>

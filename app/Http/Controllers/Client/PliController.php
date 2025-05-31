@@ -798,34 +798,57 @@ public function supprimerPli(Pli $pli)
 public function update(PliFormRequest $request, $pli_id)
 {
     $data = $request->validated();
+
+    // 🔹 Vérifier si le Pli existe
     $pli = Pli::find($pli_id);
+    if (!$pli) {
+        return back()->withErrors(['error' => "Oops, pli introuvable. Veuillez supprimer et créer ce pli à nouveau."]);
+    }
+
+    // 🔹 Vérifier si le destinataire existe
+    $destinataire = Destinataire::find($data['destinataire_id']);
+    if (!$destinataire) {
+        return back()->withErrors(['error' => "Oops, destinataire introuvable. Veuillez supprimer et créer ce pli à nouveau."]);
+    }
+
     $pli->destinataire_id = $data['destinataire_id'];
     $pli->user_id = Auth::id();
 
-    // Récupérer les informations du destinataire
-    $destinataire = Destinataire::findOrFail($data['destinataire_id']);
-    $pli->destinataire_name = $destinataire->name;
-    $pli->destinataire_adresse = $destinataire->adresse;
-    $pli->destinataire_telephone = $destinataire->telephone;
-    $pli->destinataire_email = $destinataire->email;
-    $pli->destinataire_zone = $destinataire->zone;
-    $pli->destinataire_contact = $destinataire->contact;
-    $pli->destinataire_autre = $destinataire->autre;
+    // ✅ Récupérer les informations du destinataire avec vérification des valeurs
+    $pli->destinataire_name = $destinataire->name ?? "Inconnu";
+    $pli->destinataire_adresse = $destinataire->adresse ?? "Adresse non spécifiée";
+    $pli->destinataire_telephone = $destinataire->telephone ?? "Non disponible";
+    $pli->destinataire_email = $destinataire->email ?? "Non spécifié";
+    $pli->destinataire_zone = $destinataire->zone ?? "Zone inconnue";
+    $pli->destinataire_contact = $destinataire->contact ?? "Non renseigné";
+    $pli->destinataire_autre = $destinataire->autre ?? "Aucune info supplémentaire";
 
-    // Récupérer les informations de l'expéditeur
+    // ✅ Récupérer les informations de l'expéditeur avec gestion des valeurs nulles
     $user = Auth::user();
-    $pli->user_name = $user->name;
-    $pli->user_adresse = $user->Adresse;
-    $pli->user_telephone = $user->Telephone;
-    $pli->user_email = $user->email;
-    $pli->user_zone = $user->Zone;
-    $pli->user_cellulaire = $user->Cellulaire;
-    $pli->user_autre = $user->Autre;
+    $pli->user_name = $user->name ?? "Utilisateur inconnu";
+    $pli->user_adresse = $user->Adresse ?? "Adresse non disponible";
+    $pli->user_telephone = $user->Telephone ?? "Téléphone non disponible";
+    $pli->user_email = $user->email ?? "Email inconnu";
+    $pli->user_zone = $user->Zone ?? "Zone inconnue";
+    $pli->user_cellulaire = $user->Cellulaire ?? "Cellulaire non renseigné";
+    $pli->user_autre = $user->Autre ?? "Aucune info supplémentaire";
+
+    // ✅ Vérifier les champs essentiels avant d'enregistrer
+    if (empty($data['type']) || empty($data['nombre_de_pieces']) || empty($data['reference'])) {
+        // return back()->withErrors(['error' => "Oops, certaines informations sont manquantes. Veuillez supprimer et créer ce pli à nouveau pour plus de clarté <a href='{{'client/>pli/add'}} '>."]);
+           session()->flash('error', "Oops, certaines informations sont manquantes. Veuillez supprimer et créer ce pli à nouveau pour plus de clarté.
+                <a href='" . url('client/add-pli') . "' class='btn btn-dark custom-btn'>Créer un nouveau pli</a>.");
+
+                return back();
+
+
+    }
 
     $pli->type = $data['type'];
     $pli->nombre_de_pieces = $data['nombre_de_pieces'];
-    $pli->reference = implode(' | ', $data['reference']);
+    $pli->reference = is_array($data['reference']) ? implode(' | ', $data['reference']) : "Aucune référence";
 
+    // ✅ Génération du code unique
     $year = Carbon::now()->format('y');
     $month = Carbon::now()->format('m');
     $userName = strtolower(str_replace(' ', '_', $user->name));
@@ -839,15 +862,12 @@ public function update(PliFormRequest $request, $pli_id)
     $nextNumberPadded = str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
     // $pli->code = "$userName-$year-$month-$nextNumberPadded";
 
-    // Ajout des dates d'attribution dynamiques pour ramassage et dépôt
-    $pli->date_attribution_ramassage = Carbon::now();
-    $pli->date_attribution_depot = Carbon::now(); // exemple d'ajout de 3 jours pour dépôt
-
+    // ✅ Mise à jour du pli
     $pli->update();
 
-    // Rediriger avec un message de succès
     return redirect()->route('client.plis.index')->with('success', 'Pli mis à jour avec succès!');
 }
+
 
 /*public function destroy($pli_id){
     $pli = Pli::find($pli_id);

@@ -42,6 +42,14 @@ class User extends Authenticatable
         'Autre',
         'description',
         'photo_1', 'photo_2', 'photo_3', 'photo_4', 'photo_5',
+            'facebook_name',
+            'facebook_link',
+            'instagram_name',
+            'instagram_link',
+            'website_name',
+            'website_link',
+            'folder_name',
+            'folder_link',
     ];
 
     /**

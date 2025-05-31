@@ -1,38 +1,94 @@
 
 {{-- Le blade ------------------------------------------------------------- --}}
+@php
+use Carbon\Carbon;
 
-  @php
-        use Carbon\Carbon;
+//  Définition des périodes
+$debutJour = Carbon::today();
+$debutHier = Carbon::yesterday();
+$debutSemaine = Carbon::now()->subDays(7)->startOfWeek();
+$debutMois = Carbon::now()->startOfMonth();
+$debutTrimestre = Carbon::now()->subMonths(3)->startOfMonth();
+$debutSemestre = Carbon::now()->subMonths(6)->startOfMonth();
+$debutAnnee = Carbon::now()->startOfYear();
 
-            //  Définition des périodes
-            $debutMois = Carbon::now()->startOfMonth();
-            $debutTrimestre = Carbon::now()->subMonths(3)->startOfMonth();
-            $debutSemestre = Carbon::now()->subMonths(6)->startOfMonth();
-            $debutAnnee = Carbon::now()->startOfYear();
+//  Récupération des clients avec statistiques corrigées
+$listeClients = \App\Models\User::withCount([
+    'plis as total_plis',
+
+    //  AUJOURD'HUI
+    'plis as plis_crees_aujourdhui' => fn($q) => $q->whereBetween('created_at', [$debutJour, Carbon::now()]),
+    'plis as plis_ramasses_aujourdhui' => fn($q) => $q->whereHas('attributions', fn($q) => $q->whereBetween('date_attribution_ramassage', [$debutJour, Carbon::now()])),
+    'plis as plis_traites_aujourdhui' => fn($q) => $q->whereHas('pliStatuerHistory', fn($q) => $q
+        ->whereIn('statuer_id', [3, 4, 5])
+        ->whereBetween('date_changement', [$debutJour, Carbon::now()])
+        ->orderByDesc('date_changement')
+        ->distinct()),
+
+    //  HIER
+    'plis as plis_crees_hier' => fn($q) => $q->whereBetween('created_at', [$debutHier, $debutJour]),
+    'plis as plis_ramasses_hier' => fn($q) => $q->whereHas('attributions', fn($q) => $q->whereBetween('date_attribution_ramassage', [$debutHier, $debutJour])),
+    'plis as plis_traites_hier' => fn($q) => $q->whereHas('pliStatuerHistory', fn($q) => $q
+        ->whereIn('statuer_id', [3, 4, 5])
+        ->whereBetween('date_changement', [$debutHier, $debutJour])
+        ->orderByDesc('date_changement')
+        ->distinct()),
+
+    //  SEMAINE DERNIÈRE
+    'plis as plis_crees_semaine' => fn($q) => $q->whereBetween('created_at', [$debutSemaine, Carbon::now()]),
+    'plis as plis_ramasses_semaine' => fn($q) => $q->whereHas('attributions', fn($q) => $q->whereBetween('date_attribution_ramassage', [$debutSemaine, Carbon::now()])),
+    'plis as plis_traites_semaine' => fn($q) => $q->whereHas('pliStatuerHistory', fn($q) => $q
+        ->whereIn('statuer_id', [3, 4, 5])
+        ->whereBetween('date_changement', [$debutSemaine, Carbon::now()])
+        ->orderByDesc('date_changement')
+        ->distinct()),
+
+    //  MOIS DERNIER
+    'plis as plis_crees_mois' => fn($q) => $q->whereBetween('created_at', [$debutMois, Carbon::now()]),
+    'plis as plis_ramasses_mois' => fn($q) => $q->whereHas('attributions', fn($q) => $q->whereBetween('date_attribution_ramassage', [$debutMois, Carbon::now()])),
+    'plis as plis_traites_mois' => fn($q) => $q->whereHas('pliStatuerHistory', fn($q) => $q
+        ->whereIn('statuer_id', [3, 4, 5])
+        ->whereBetween('date_changement', [$debutMois, Carbon::now()])
+        ->orderByDesc('date_changement')
+        ->distinct()),
+
+    //  TOTAL DES PLIS TRAITÉS DEPUIS LA CRÉATION
+
+        // 🔹 TOTAL DES PLIS DEPUIS LA CRÉATION (C/R/T)
+    'plis as total_crees' => function ($q) {
+        $q->whereNotNull('created_at');
+    },
+    'plis as total_ramasses' => function ($q) {
+        $q->whereHas('attributions');
+    },
 
 
-    @endphp
+
+    'plis as total_traites' => fn($q) => $q->whereHas('pliStatuerHistory', fn($q) => $q
+        ->whereIn('statuer_id', [3, 4, 5])
+        ->orderByDesc('date_changement')
+        ->distinct()),
+])->get();
+@endphp
+
+                @php
+                    //  Trier les clients en fonction des plis ramassés (du plus actif au moins actif)
+                    $listeClients = $listeClients->sortByDesc(fn($client) => $client->total_ramasses);
+                    @endphp
+
 
 {{-- ---------------------------------------------------------------------------------------------------------- --}}
 
 <!-- Modal pour afficher les clients actifs et inactifs -->
 
     <div class="modal fade modal-lg " id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-xl " >
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLabel">Clients actifs / Client inactifs</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-
-            {{-- ------------------------------------------------------------------------------------- --}}
-              <form action="" method="get">
-                @csrf
-                <button type="submit" class="btn btn-text active" name="mois-actuel">Mois actuel</button>
-                 <button type="submit" class="btn btn-text active" name="trois-mois">Il y a 1 Mois</button>
-                <button type="submit" class="btn bt-text active" name="deux-mois">Il y a 2 Mois</button>
-            </form>
 
             <style>
                     .btn.active {
@@ -41,88 +97,93 @@
                     }
 
             </style>
-                    @php
-
-                    $messageFiltre = ''; //  Initialise le message
-                        $periode = Carbon::now()->startOfMonth(); //  Définit par défaut le mois en cours
-
-                    if (request()->has('mois-actuel')) {
-                        $periode = Carbon::now()->startOfMonth();
-                        $messageFiltre = "Données du mois actuel.";
-                    } elseif (request()->has('deux-mois')) {
-                        $periode = Carbon::now()->subMonths(2)->startOfMonth();
-                        $messageFiltre = "Données d'il y a deux mois jusqu'à aujourd'hui.";
-                    } elseif (request()->has('trois-mois')) {
-                        $periode = Carbon::now()->subMonth()->startOfMonth();
-                        $messageFiltre = "Données d'il y a un mois jusqu'à aujourd'hui.";
+                <style>
+                    .table-container {
+                        position: relative;
+                        max-height: 500px; /* Ajuste selon besoin */
+                        overflow-y: auto; /* Ajoute un défilement si nécessaire */
                     }
-                    @endphp
 
+                    .total-row {
+                        position: sticky;
+                        bottom: 0;
+                        background-color: #343a40; /*  Couleur sombre pour se démarquer */
+                        color: white; /*  Texte en blanc pour un bon contraste */
+                        font-weight: bold;
+                        border-top: 3px solid black; /*  Ligne de séparation nette */
+                    }
+                </style>
 
-                    @if ($periode)
-                            @php
-                                $listeClients = \App\Models\User::withCount([
-                                    'plis as total_plis', //  Ajout du nombre total de plis créés
-                                    'plis as plis_ramasses_count' => function ($query) use ($periode) {
-                                        $query->whereHas('attributions', function ($q) use ($periode) {
-                                            $q->whereBetween('date_attribution_ramassage', [$periode, Carbon::today()]);
-                                        });
-                                    },
-                                    'plis as plis_traites_count' => function ($query) {
-                                        $query->whereHas('pliStatuerHistory', function ($q) {
-                                            $q->whereNotIn('statuer_id', [1, 2]); // ✅ Filtre les plis traités
-                                        });
-                                    }
-                                ])->get();
-                            @endphp
-                        @endif
-
-                    @if ($periode)
-                              <p style="font-weight: bold; color: #007bff;">{{ $messageFiltre }}</p> <!-- ✅ Affichage du message -->
-
-                    @endif
                     <div style="height: 500px; overflow-y: auto; border: 1px solid #ddd; padding: 10px;">
-                        <input type="text" id="search" placeholder="Rechercher un client..." class="form-control mb-2">
+                        <input type="text" id="searchClient" placeholder="Rechercher un client..." class="form-control mb-2">
+                      <div class="table-container">
 
-                        <table class="table table-striped">
-                            <thead>
+           <div class="table-container">
+
+                    <table class="table table-striped table-bordered">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Nom du client</th>
+                                <th>AJ. (C/R/T)</th> <!-- Aujourd'hui -->
+                                <th>Hier (C/R/T)</th> <!-- Hier -->
+                                <th>S. Der (C/R/T)</th> <!-- Semaine Dernière -->
+                                <th>M. Der (C/R/T)</th> <!-- Mois Dernier -->
+                                <th>Total (C/R/T)</th> <!--  Total depuis la création -->
+                                <th>D. Ins.</th> <!-- Date d'inscription -->
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            @foreach ($listeClients as $client)
                                 <tr>
-                                    <th>Nom du client</th>
-                                    <th>Plis créés</th>
-                                    <th>Plis ramassés (traités / total)</th>
-                                    <th>Fréquence (%)</th>
+                                    <td><strong>{{ $client->name }}    ({{ $client->Telephone }} /  ({{ $client->Cellulaire }} )  </strong></td>
+                                    <td>{{ $client->plis_crees_aujourdhui }} / {{ $client->plis_ramasses_aujourdhui }} / {{ $client->plis_traites_aujourdhui }}</td>
+                                    <td>{{ $client->plis_crees_hier }} / {{ $client->plis_ramasses_hier }} / {{ $client->plis_traites_hier }}</td>
+                                    <td>{{ $client->plis_crees_semaine }} / {{ $client->plis_ramasses_semaine }} / {{ $client->plis_traites_semaine }}</td>
+                                    <td>{{ $client->plis_crees_mois }} / {{ $client->plis_ramasses_mois }} / {{ $client->plis_traites_mois }}</td>
+                                    <td><strong>{{ $client->total_crees }} / {{ $client->total_ramasses }} / {{ $client->total_traites }}</strong></td> <!--  Total depuis la création -->
+                                    <td>{{ $client->created_at->format('d/m/Y') }}</td>
                                 </tr>
-                            </thead>
-                            <tbody id="tableBody">
-                                     @php
-                                         $totalNombrePlisRamasses = max($listeClients->sum('plis_ramasses_count'), 1); // ✅ Empêche division par zéro
-                                    @endphp
+                            @endforeach
+                                 <tr class="total-row">
+                               <td><strong>Total</strong></td>
+                                    <td><strong>{{ $listeClients->sum('plis_crees_aujourdhui') }} / {{ $listeClients->sum('plis_ramasses_aujourdhui') }} / {{ $listeClients->sum('plis_traites_aujourdhui') }}</strong></td>
+                                    <td><strong>{{ $listeClients->sum('plis_crees_hier') }} / {{ $listeClients->sum('plis_ramasses_hier') }} / {{ $listeClients->sum('plis_traites_hier') }}</strong></td>
+                                    <td><strong>{{ $listeClients->sum('plis_crees_semaine') }} / {{ $listeClients->sum('plis_ramasses_semaine') }} / {{ $listeClients->sum('plis_traites_semaine') }}</strong></td>
+                                    <td><strong>{{ $listeClients->sum('plis_crees_mois') }} / {{ $listeClients->sum('plis_ramasses_mois') }} / {{ $listeClients->sum('plis_traites_mois') }}</strong></td>
+                                    <td><strong>{{ $listeClients->sum('total_crees') }} / {{ $listeClients->sum('total_ramasses') }} / {{ $listeClients->sum('total_traites') }}</strong></td>
+                                    <td></td> <!--  La colonne Date Inscription reste vide pour cette ligne -->
+                                </tr>
 
-                                    @foreach ($listeClients->sortByDesc(fn($client) => ($client->plis_ramasses_count / $totalNombrePlisRamasses) * 100) as $client)
-                                        <tr>
-                                            <td>{{ $client->name }}</td>
-                                            <td>{{ $client->total_plis }}</td>
-                                            <td>{{ $client->plis_traites_count ?? 0 }} / {{ $client->plis_ramasses_count }}</td>
-                                            <td>{{ round(($client->plis_ramasses_count / $totalNombrePlisRamasses) * 100, 2) }}%</td>
-                                        </tr>
-                                    @endforeach
-
-
-                            </tbody>
-                        </table>
+                        </tbody>
+                    </table>
+                </div>
+                        </div>
                     </div>
 
-                    <script>
-                    document.getElementById('search').addEventListener('keyup', function() {
-                        let filter = this.value.toLowerCase();
-                        let rows = document.querySelectorAll('#tableBody tr');
+                  <script>
+                        document.getElementById('searchClient').addEventListener('input', function() {
+                            let filter = this.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                            let rows = document.querySelectorAll('#tableBody tr');
 
-                        rows.forEach(row => {
-                            let clientName = row.cells[0].textContent.toLowerCase();
-                            row.style.display = clientName.includes(filter) ? '' : 'none';
+                            rows.forEach(row => {
+                                let matchFound = false;
+
+                                //  Vérifier chaque cellule pour une correspondance
+                                Array.from(row.cells).forEach(cell => {
+                                    let text = cell.textContent.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                                    if (text.includes(filter)) {
+                                        matchFound = true;
+                                        cell.style.backgroundColor = "#ffff99"; //  Met en surbrillance la cellule correspondante
+                                    } else {
+                                        cell.style.backgroundColor = ""; // 🔄 Réinitialise si pas de match
+                                    }
+                                });
+
+                                //  Affiche uniquement les lignes contenant un match
+                                row.style.display = matchFound ? '' : 'none';
+                            });
                         });
-                    });
-                    </script>
+                        </script>
             {{-- --------------------------------------------------- --}}
       </div>
       <div class="modal-footer">
@@ -132,6 +193,45 @@
     </div>
   </div>
 </div>
+    <style>
+            .table-container {
+                max-height: 500px; /*  Fixe la hauteur de la table */
+                overflow-y: auto;  /*  Active le défilement vertical */
+                border: 1px solid #ddd;
+            }
+
+            .table thead {
+                position: sticky;
+                top: 0;
+                background-color: #00172f; /*  Fixe l'en-tête avec un fond foncé */
+                color: white; /*  Texte en blanc pour le contraste */
+                z-index: 1000;
+            }
+</style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 {{-- -------------------------------------------------------------------- --}}
 
@@ -194,7 +294,7 @@
                                                             <i class="fas fa-eye"></i>
                                                          </a>
                                                     </td>
-                                                    
+
                                                     <td>{{ $pli0->user_name }}</td>
                                                     <td>{{ $pli0->destinataire_name }}</td>
                                                      <td>{{ $pli0->destinataire_adresse }}</td>

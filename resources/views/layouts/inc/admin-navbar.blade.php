@@ -16,13 +16,23 @@
                 <i class="fas fa-user fa-fw"></i>
             </a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                <!-- Formulaire de déconnexion -->
-                <li><a class="nav-link text-bg-dark" href="{{ url('/admin/Mon-profil') }}">Mon profil</a></li>
-                <li> <h6>Suivi de pli</h6> </li>
-                <li> <a class="nav-link text-bg-dark" href="{{ url('admin/destinataires') }}">Liste des destinataires</a></li>
-                <li><a class="nav-link text-bg-dark" href="{{ url('admin/plis') }}">Liste des plis</a></li>
-                <li>  <a href="{{ route('admin.attributions.index') }}" class="nav-link text-bg-dark" title="Attribuer"  style=""><i class="fas fa-user-plus"></i> Attribution des plis</a> </li>
-                <li> <a href="{{ url('admin/plis/verification') }}" class="nav-link text-bg-dark" title="Vérifier"  style="">Vérification des  statuts de plis</a></li>
+                {{-- <!-- Formulaire de déconnexion --> /gestion-cheques --}}
+                  <li><a class="nav-link text-bg-dark" href="{{ url('admin/gestion-cheques/') }}">Services Chèques</a></li>
+
+                    <li>
+                            <details>
+                                <summary>Suivi de Pli</summary>
+                                <ul>
+                                    <li><a class="nav-link text-bg-dark" href="{{ url('/admin/Mon-profil') }}">Mon profil</a></li>
+                                    <li><a class="nav-link text-bg-dark" href="{{ url('admin/destinataires') }}">Liste des destinataires</a></li>
+                                    <li><a class="nav-link text-bg-dark" href="{{ url('admin/plis') }}">Liste des plis</a></li>
+                                    <li><a class="nav-link text-bg-dark" href="{{ route('admin.attributions.index') }}" title="Attribuer"><i class="fas fa-user-plus"></i> Attribution des plis</a></li>
+                                    <li><a class="nav-link text-bg-dark" href="{{ url('admin/plis/verification') }}" title="Vérifier">Vérification des statuts de plis</a></li>
+                                </ul>
+                            </details>
+                    </li>
+
+
                    <li>
                     <form action="{{ route('logout') }}" method="POST">
                         @csrf
@@ -39,9 +49,9 @@
 
 <style>
         .nav-link:hover{
-                background-color:rgb(63, 63, 63) !important;
-                font-size: 16px;
-                transition: font-size 0.5ms ease;
+                background-color:rgb(85, 85, 85) !important;
+                /* font-size: 1px; */
+                transition: all 0.9ms ease-in-out;
 
         }
 </style>

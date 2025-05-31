@@ -217,7 +217,7 @@
                      <div class="d-flex align-items-center">
 
                          @php
-                            $clientA = \App\Models\Pli::pluck('user_name')->unique(); // ✅ Liste des destinataires
+                            $clientA = \App\Models\Pli::pluck('user_name')->unique(); //  Liste des destinataires
                         @endphp
 
                         {{-- <input list="destinatairesList" name="destinataire_name" class="form-control" placeholder="Recherchez un destinataire..."> --}}

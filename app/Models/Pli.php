@@ -72,7 +72,7 @@ class Pli extends Model
                 return $this->hasMany(Attribution::class, 'pli_id');
             }
 
-   
+
 
 
 public function user()
@@ -83,7 +83,7 @@ public function user()
 
 
 public function pliStatuerHistory() {
-    return $this->hasMany(PliStatuerHistory::class); // 🔥 Corrige la relation
+    return $this->hasMany(PliStatuerHistory::class); //  Corrige la relation
 }
 
 

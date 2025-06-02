@@ -38,10 +38,10 @@
                 <!-- Nombre de zones -->
                 <div class="mb-3">
                     <label for="zone-count" class="form-label">Nombre de zones<span class="text-danger">*</span></label>
-                    <input type="number" class="form-control bg-primary text-white @error('zone_count') is-invalid @enderror" 
-                        id="zone-count" 
-                        name="zone_count" 
-                        min="1" 
+                    <input type="number" class="form-control bg-primary text-white @error('zone_count') is-invalid @enderror"
+                        id="zone-count"
+                        name="zone_count"
+                        min="0"
                         value="{{ old('zone_count', count($coursier->zones)) }}">
                     @error('zone_count')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -55,11 +55,11 @@
                     @foreach ($coursier->zones as $index => $zone)
                         <div class="mb-3">
                             <label for="zone-{{ $index + 1 }}" class="form-label">Zone {{ $index + 1 }} :</label>
-                            <input type="text" 
-                                name="zones[]" 
-                                class="form-control bg-primary text-white" 
-                                value="{{ old('zones.' . $index, $zone) }}" 
-                                required>
+                            <input type="text"
+                                name="zones[]"
+                                class="form-control bg-primary text-white"
+                                value="{{ old('zones.' . $index, $zone) }}"
+                                >
                         </div>
                     @endforeach
                 </div>
@@ -67,10 +67,10 @@
                 <!-- Nom -->
                 <div class="mb-3">
                     <label for="nom" class="form-label">Nom<span class="text-danger">*</span></label>
-                    <input type="text" class="form-control bg-primary text-white @error('nom') is-invalid @enderror" 
-                        id="nom" 
-                        name="nom" 
-                        value="{{ old('nom', $coursier->nom) }}" 
+                    <input type="text" class="form-control bg-primary text-white @error('nom') is-invalid @enderror"
+                        id="nom"
+                        name="nom"
+                        value="{{ old('nom', $coursier->nom) }}"
                         required>
                     @error('nom')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -80,10 +80,10 @@
                 <!-- Prénoms -->
                 <div class="mb-3">
                     <label for="prenoms" class="form-label">Prénoms<span class="text-danger">*</span></label>
-                    <input type="text" class="form-control bg-primary text-white @error('prenoms') is-invalid @enderror" 
-                        id="prenoms" 
-                        name="prenoms" 
-                        value="{{ old('prenoms', $coursier->prenoms) }}" 
+                    <input type="text" class="form-control bg-primary text-white @error('prenoms') is-invalid @enderror"
+                        id="prenoms"
+                        name="prenoms"
+                        value="{{ old('prenoms', $coursier->prenoms) }}"
                         required>
                     @error('prenoms')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -93,10 +93,10 @@
                 <!-- Téléphone -->
                 <div class="mb-3">
                     <label for="telephone" class="form-label">Téléphone<span class="text-danger">*</span></label>
-                    <input type="text" class="form-control bg-primary text-white @error('telephone') is-invalid @enderror" 
-                        id="telephone" 
-                        name="telephone" 
-                        value="{{ old('telephone', $coursier->telephone) }}" 
+                    <input type="text" class="form-control bg-primary text-white @error('telephone') is-invalid @enderror"
+                        id="telephone"
+                        name="telephone"
+                        value="{{ old('telephone', $coursier->telephone) }}"
                         required>
                     @error('telephone')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -106,10 +106,10 @@
                 <!-- Adresse -->
                 <div class="mb-3">
                     <label for="adresse" class="form-label">Adresse<span class="text-danger">*</span></label>
-                    <input type="text" class="form-control bg-primary text-white @error('adresse') is-invalid @enderror" 
-                        id="adresse" 
-                        name="adresse" 
-                        value="{{ old('adresse', $coursier->adresse) }}" 
+                    <input type="text" class="form-control bg-primary text-white @error('adresse') is-invalid @enderror"
+                        id="adresse"
+                        name="adresse"
+                        value="{{ old('adresse', $coursier->adresse) }}"
                         required>
                     @error('adresse')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -119,9 +119,9 @@
                 <!-- Email -->
                 <div class="mb-3">
                     <label for="email" class="form-label">Email</label>
-                    <input type="email" class="form-control bg-primary text-white @error('email') is-invalid @enderror" 
-                        id="email" 
-                        name="email" 
+                    <input type="email" class="form-control bg-primary text-white @error('email') is-invalid @enderror"
+                        id="email"
+                        name="email"
                         value="{{ old('email', $coursier->email) }}">
                     @error('email')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -131,10 +131,10 @@
                 <!-- Contact d'urgence -->
                 <div class="mb-3">
                     <label for="contact_urgence" class="form-label">Contact d'urgence<span class="text-danger">*</span></label>
-                    <input type="text" class="form-control bg-primary text-white @error('contact_urgence') is-invalid @enderror" 
-                        id="contact_urgence" 
-                        name="contact_urgence" 
-                        value="{{ old('contact_urgence', $coursier->contact_urgence) }}" 
+                    <input type="text" class="form-control bg-primary text-white @error('contact_urgence') is-invalid @enderror"
+                        id="contact_urgence"
+                        name="contact_urgence"
+                        value="{{ old('contact_urgence', $coursier->contact_urgence) }}"
                         required>
                     @error('contact_urgence')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -144,10 +144,10 @@
                 <!-- Affiliation d'urgence -->
                 <div class="mb-3">
                     <label for="affiliation_urgence" class="form-label">Affiliation d'urgence<span class="text-danger">*</span></label>
-                    <input type="text" class="form-control bg-primary text-white @error('affiliation_urgence') is-invalid @enderror" 
-                        id="affiliation_urgence" 
-                        name="affiliation_urgence" 
-                        value="{{ old('affiliation_urgence', $coursier->affiliation_urgence) }}" 
+                    <input type="text" class="form-control bg-primary text-white @error('affiliation_urgence') is-invalid @enderror"
+                        id="affiliation_urgence"
+                        name="affiliation_urgence"
+                        value="{{ old('affiliation_urgence', $coursier->affiliation_urgence) }}"
                         required>
                     @error('affiliation_urgence')
                         <div class="invalid-feedback">{{ $message }}</div>

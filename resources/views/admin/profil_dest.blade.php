@@ -21,6 +21,15 @@
         @endphp
 
 
+            {{-- Logique pour recuperer les archives --}}
+
+            {{-- @php
+                $archivePlis = \App\Models\Pli::
+            @endphp --}}
+
+
+
+
 
 
             @php
@@ -433,6 +442,51 @@
 
     {{-- Liste Utilisateurs----------------  --}}
 
+
+                {{-- Vos achirves --------------------------------------------}}
+
+             <div>
+                <h4>Liste des utilisateurs </h4>
+                <h5>Utilsiateurs de la plateforme IVOIRRAPID  {{ $allUsers->count() }}  </h5>
+            <input type="text" id="searchInput" class="form-control" placeholder="Rechercher un utilisateur..." onkeyup="searchTable()">
+                <div class="row" style="height:200px; overflow:auto" >
+                                <table class="table" style="text-align: left !important" id="tableUser">
+                                <tbody>
+                                    @foreach ( $allUsers  as $allUser )
+                                        <tr>
+
+                                            <th scope="row"> {{ $loop->iteration }} </th>
+                                            <td>
+                                                    @php
+                                                        $initiale = strtoupper(substr($allUser->name, 0, 1));
+                                                    @endphp
+                                                <div style="border-radius: 50%; background: #200383; text-align:center; vertical-align:middle; font-weight:700; color:white">
+                                                    {{ $initiale }}
+                                                    </div>
+                                            </td>
+                                            <td> <a href="#" title="Voir l'entreprise" class="link link-dark" >
+                                                        {{ $allUser->name }}  |  {{ $allUser->Commune ?? 'Non défini' }}   {{ $allUser->Quartier ?? 'Non défini' }}
+                                                </a> </td>
+                                                <style>
+                                                    .link-dark{
+                                                        text-decoration:none;
+                                                    }
+                                                    .link-dark:hover{
+                                                        color:#2800aa !important;
+                                                    }
+                                                </style>
+                                                <td>
+                                             <a href="#" class="link link-dark" title="Faire un cc "> <i class="bi bi-chat-dots-fill"></i> </a>
+                                                </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                                </table>
+                        </div>
+                    </div>
+
+                {{-- Fin d'archives  -------------------------------------------------------------------------}}
+
             <div>
                 <h4>Liste des utilisateurs </h4>
                 <h5>Utilsiateurs de la plateforme IVOIRRAPID  {{ $allUsers->count() }}  </h5>
@@ -547,9 +601,24 @@
                     </div>
 
 
-    {{-- Liste utilisateurs  --}}
+    {{-- / Liste utilisateurs  --}}
 
             </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     <script src="script.js"></script>
 

@@ -3,6 +3,10 @@
 @section('title', 'Accusé de Retour')
 
 @section('content')
+
+
+
+
 <div class="container">
     @for ($i = 0; $i < 2; $i++) <!-- Répète deux fois la section -->
     <!-- En-tête avec logo et informations principales -->
@@ -75,12 +79,20 @@
     @endfor
 </div>
 
+
+
+
+
 <!-- Bouton d'impression -->
 <div class="btn-container mt-3">
     <button id="imprimer-btn" class="btn btn-primary" onclick="imprimerPage()">
         <i class="fas fa-print"></i> Imprimer
     </button>
 </div>
+
+
+
+
 @endsection
 
 <style>

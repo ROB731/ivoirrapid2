@@ -68,9 +68,11 @@ class CoursierFormRequest extends FormRequest
                 $coursierId ? 'unique:coursiers,contact_urgence,' . $coursierId : 'unique:coursiers,contact_urgence',
             ],
             'affiliation_urgence' => 'nullable|string|max:255',
-            'zone_count' => 'required|integer|min:1',
-            'zones' => 'required|array',
-            'zones.*' => 'required|string|max:255',
+            'zone_count' => 'required|integer',
+            // 'zones' => 'required|array',
+            // 'zones.*' => 'required|string|max:255',
+              'zones' => 'array',
+            'zones.*' => 'max:255',
         ];
     }
 

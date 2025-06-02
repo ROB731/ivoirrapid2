@@ -94,6 +94,8 @@ use App\Http\Controllers\Client\DestinataireController;
 
                 });
 
+
+
           Route::post('/admin/Mon-profil',function(){
 
            if(Auth::check())
@@ -148,6 +150,34 @@ use App\Http\Controllers\Client\DestinataireController;
                     }
 
                 });
+
+
+                // ---------------------------- En bas pour les archivages
+
+                 Route::post('/client/archives-client',function(){
+
+                if(Auth::check())
+                    {
+                        if(Auth::user()->role_as=='0')
+                            {
+                                return view('client.archives-client');
+                            }
+                    }
+
+                });
+
+
+                  Route::get('/client/archives-client',function(){
+
+                            if(Auth::check())
+                                {
+                                    if(Auth::user()->role_as=='0')
+                                        {
+                                            return view('client.archives-client');
+                                        }
+                                }
+
+                            });
 
 
 
